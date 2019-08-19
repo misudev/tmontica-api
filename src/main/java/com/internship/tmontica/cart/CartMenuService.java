@@ -103,15 +103,10 @@ public class CartMenuService {
             int optionPrice = 0;
             for (CartOptionRequest option : options) {
                 // DB에 들어갈 옵션 문자열 만들기
-                if (option.getId() > 2) {
-                    optionStr.append("/");
-                }
-                int optionId = option.getId();
-                int opQuantity = option.getQuantity();
-                optionStr.append(optionId + "__" + opQuantity);
+                option.convertOptionStringToDB(optionStr);
 
                 // 옵션들의 가격 계산
-                optionPrice += ((optionDao.getOptionById(optionId).getPrice()) * opQuantity);
+                optionPrice += ((optionDao.getOptionById(option.getId()).getPrice()) * option.getQuantity());
             }
 
             // 카트 테이블에 추가하기
