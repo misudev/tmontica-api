@@ -10,9 +10,14 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderListResp {
+public class OrderResponse {
+
     private int orderId;
-    private Date orderDate;
+    private String payment;
     private String status;
-    private List<String> menuNames;
+    private int totalPrice;
+    private int realPrice;
+    private int usedPoint;
+    private Date orderDate;
+    private List<OrderMenusResponse> menus;
 }

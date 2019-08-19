@@ -8,7 +8,7 @@ import org.apache.ibatis.type.Alias;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderMenusResp {
+public class OrderMenusResponse {
     private int menuId;
     private String nameEng;
     private String nameKo;

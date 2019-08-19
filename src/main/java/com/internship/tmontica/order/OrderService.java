@@ -10,12 +10,12 @@ import com.internship.tmontica.order.exception.NotEnoughStockException;
 import com.internship.tmontica.order.exception.OrderException;
 import com.internship.tmontica.order.exception.OrderExceptionType;
 import com.internship.tmontica.order.exception.StockExceptionType;
-import com.internship.tmontica.order.model.request.OrderMenusReq;
-import com.internship.tmontica.order.model.request.OrderReq;
-import com.internship.tmontica.order.model.response.OrderListByUserIdResp;
-import com.internship.tmontica.order.model.response.OrderListResp;
-import com.internship.tmontica.order.model.response.OrderMenusResp;
-import com.internship.tmontica.order.model.response.OrderResp;
+import com.internship.tmontica.order.model.request.OrderMenusRequest;
+import com.internship.tmontica.order.model.request.OrderRequest;
+import com.internship.tmontica.order.model.response.OrderListByUserIdResponse;
+import com.internship.tmontica.order.model.response.OrderListResponse;
+import com.internship.tmontica.order.model.response.OrderMenusResponse;
+import com.internship.tmontica.order.model.response.OrderResponse;
 import com.internship.tmontica.point.Point;
 import com.internship.tmontica.point.PointDao;
 import com.internship.tmontica.point.PointLogType;
@@ -48,9 +48,9 @@ public class OrderService {
 
 
     // 주문내역 가져오기 api
-    public OrderListByUserIdResp getOrderListApi(int page, int size){
+    public OrderListByUserIdResponse getOrderListApi(int page, int size){
         String userId = JsonUtil.getJsonElementValue(jwtService.getUserInfo("userInfo"),"id");
-        List<OrderListResp> orderListResps = new ArrayList<>(); // orders
+        List<OrderListResponse> orderListResponses = new ArrayList<>(); // orders
 
         int startList = (page - 1) * size; // 게시물의 시작번호 (DB의 offset)
 
@@ -58,50 +58,50 @@ public class OrderService {
         List<Order> orders = orderDao.getOrderByUserId(userId, startList, size);
         int totalCnt = orderDao.getPrevResultCnt(); // userId의 전체 주문 개수
         for (Order order: orders) {
-            OrderListResp orderListResp = new OrderListResp();
+            OrderListResponse orderListResponse = new OrderListResponse();
 
-            orderListResp.setOrderId(order.getId());
-            orderListResp.setOrderDate(order.getOrderDate());
-            orderListResp.setStatus(order.getStatus());
-            orderListResp.setMenuNames(orderDao.getMenuNamesByOrderId(order.getId()));
+            orderListResponse.setOrderId(order.getId());
+            orderListResponse.setOrderDate(order.getOrderDate());
+            orderListResponse.setStatus(order.getStatus());
+            orderListResponse.setMenuNames(orderDao.getMenuNamesByOrderId(order.getId()));
 
-            orderListResps.add(orderListResp);
+            orderListResponses.add(orderListResponse);
         }
 
-        OrderListByUserIdResp orderListByUserIdResp = new OrderListByUserIdResp(totalCnt, orderListResps);
+        OrderListByUserIdResponse orderListByUserIdResponse = new OrderListByUserIdResponse(totalCnt, orderListResponses);
 
-        return orderListByUserIdResp;
+        return orderListByUserIdResponse;
     }
 
 
     // 결제하기 api
     @Transactional(rollbackFor = {NotEnoughStockException.class, CartException.class, OrderException.class, Exception.class} )
-    public Map<String, Integer> addOrderApi(OrderReq orderReq, Device device){
+    public Map<String, Integer> addOrderApi(OrderRequest orderRequest, Device device){
         //토큰에서 유저아이디
         String userId = JsonUtil.getJsonElementValue(jwtService.getUserInfo("userInfo"),"id");
 
         // 포인트를 사용했을 경우
-        if (orderReq.getUsedPoint() > 0){
+        if (orderRequest.getUsedPoint() > 0){
             int userPoint = userDao.getUserPointByUserId(userId);
             // 가지고 있는 포인트보다 더 사용하려고 할 때 예외처리
-            if(userPoint < orderReq.getUsedPoint()){
+            if(userPoint < orderRequest.getUsedPoint()){
                 throw new PointException(PointExceptionType.POINT_LESS_THEN_ZERO_EXCEPTION);
             }
             // user 테이블에 사용한 포인트 차감하기
-            userDao.updateUserPoint(userPoint-orderReq.getUsedPoint(), userId);
+            userDao.updateUserPoint(userPoint- orderRequest.getUsedPoint(), userId);
 
             // point 테이블에 사용 로그 추가하기
-            pointDao.addPoint(new Point(userId, PointLogType.USE_POINT.getType() ,orderReq.getUsedPoint(), "결제시 사용"));
+            pointDao.addPoint(new Point(userId, PointLogType.USE_POINT.getType() , orderRequest.getUsedPoint(), "결제시 사용"));
         }
 
         // device 종류 검사
         String userAgent = UserAgentType.toString(device);
 
-        Order order = new Order(0,orderReq.getPayment(),orderReq.getTotalPrice(),orderReq.getUsedPoint(),
-                orderReq.getTotalPrice()-orderReq.getUsedPoint(), OrderStatusType.BEFORE_PAYMENT.getStatus(), userId, userAgent);
+        Order order = new Order(0, orderRequest.getPayment(), orderRequest.getTotalPrice(), orderRequest.getUsedPoint(),
+                orderRequest.getTotalPrice()- orderRequest.getUsedPoint(), OrderStatusType.BEFORE_PAYMENT.getStatus(), userId, userAgent);
 
         // 포인트로 전액을 결제 했을 경우는 status 결제완료
-        if (orderReq.getTotalPrice() == orderReq.getUsedPoint()){
+        if (orderRequest.getTotalPrice() == orderRequest.getUsedPoint()){
             order.setStatus(OrderStatusType.AFTER_PAYMENT.getStatus());
         }
 
@@ -115,8 +115,8 @@ public class OrderService {
         int totalPrice = 0; // 금액 체크를 위한 변수
         // 주문상세테이블에 추가
         // 카트 아이디로 정보를 가져와서 order_details 에 추가
-        List<OrderMenusReq> menus = orderReq.getMenus();
-        for (OrderMenusReq menu: menus) {
+        List<OrderMenusRequest> menus = orderRequest.getMenus();
+        for (OrderMenusRequest menu: menus) {
             CartMenu cartMenu = cartMenuDao.getCartMenuByCartId(menu.getCartId());
 
             // 로그인한 아이디와 해당 카트id의 userId가 다르면 rollback
@@ -146,7 +146,7 @@ public class OrderService {
         }
 
         // totalPrice 맞는지 체크
-        if (totalPrice != orderReq.getTotalPrice()){
+        if (totalPrice != orderRequest.getTotalPrice()){
             throw new OrderException(OrderExceptionType.INVALID_TOTALPRICE);
         }
 
@@ -158,7 +158,7 @@ public class OrderService {
 
 
     // 주문 정보 1개 가져오기(상세내역 포함) api
-    public OrderResp getOneOrderApi(int orderId){
+    public OrderResponse getOneOrderApi(int orderId){
         Order order = orderDao.getOrderByOrderId(orderId);
         String userId = JsonUtil.getJsonElementValue(jwtService.getUserInfo("userInfo"),"id");
         // 유저 아이디 검사
@@ -166,9 +166,9 @@ public class OrderService {
             throw new OrderException(OrderExceptionType.FORBIDDEN_ACCESS_ORDER_DATA);
         }
 
-        List<OrderMenusResp> menus = orderDao.getOrderDetailByOrderId(orderId);
+        List<OrderMenusResponse> menus = orderDao.getOrderDetailByOrderId(orderId);
 
-        for (OrderMenusResp menu : menus) {
+        for (OrderMenusResponse menu : menus) {
             //메뉴 옵션 "1__1/4__2" => "HOT/샷추가(2개)" 로 바꾸는 작업
             if(!menu.getOption().equals("")){
                 String option = menu.getOption();
@@ -180,9 +180,9 @@ public class OrderService {
             menu.setImgUrl("/images/".concat(menu.getImgUrl()));
         }
 
-        OrderResp orderResp = new OrderResp(orderId, order.getPayment(), order.getStatus(), order.getTotalPrice(),
+        OrderResponse orderResponse = new OrderResponse(orderId, order.getPayment(), order.getStatus(), order.getTotalPrice(),
                 order.getRealPrice(), order.getUsedPoint(), order.getOrderDate(), menus);
-        return orderResp;
+        return orderResponse;
     }
 
 
