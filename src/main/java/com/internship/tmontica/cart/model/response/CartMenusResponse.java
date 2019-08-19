@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartMenusResp {
+public class CartMenusResponse {
     private int cartId;
     private int menuId;
     private String nameEng;

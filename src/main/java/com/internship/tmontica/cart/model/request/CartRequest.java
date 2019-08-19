@@ -10,14 +10,14 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class CartReq {
+public class CartRequest {
 
     @Min(1)
     private int menuId;
     @Min(1)
     private int quantity;
     @Valid
-    private List<CartOptionReq> option;
+    private List<CartOptionRequest> option;
     @NotNull
     private Boolean direct; // @NotNull 적용을 위해
 }
