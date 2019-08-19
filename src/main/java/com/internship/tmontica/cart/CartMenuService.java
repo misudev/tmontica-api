@@ -86,19 +86,18 @@ public class CartMenuService {
 
         for (CartRequest cartRequest : cartRequests) {
             Menu menu = menuDao.getMenuById(cartRequest.getMenuId());
+
             // 재고 체크와 예외처리
             menu.checkMenuStock(cartRequest.getQuantity());
 
-            // direct : true 이면 userId 의 카트에서 direct = true 인 것을 삭제하기
+            // direct : true 이면 userId 의 카트에서 direct = true 인 것을 삭제하기 (바로구매를 눌러서 장바구니에 담긴 메뉴)
             if (cartRequest.getDirect()) {
                 cartMenuDao.deleteDirectCartMenu(userId);
             }
 
             List<CartOptionRequest> options = cartRequest.getOption();
             // 음료의 옵션에 HOT/ICE 선택이 안들어가있을때 익셉션 처리
-            if(!menu.getCategoryEng().equals(CategoryName.CATEGORY_BREAD.getCategoryEng()) && (options.size()==0 || options.get(0).getId() > 2)){
-                throw new CartException(CartExceptionType.DEFAULT_OPTION_NOT_SELECTED);
-            }
+            menu.checkDrinkOption(options);
 
             StringBuilder optionStr = new StringBuilder();
             int optionPrice = 0;
