@@ -1,5 +1,7 @@
 package com.internship.tmontica.menu;
 
+import com.internship.tmontica.order.exception.NotEnoughStockException;
+import com.internship.tmontica.order.exception.StockExceptionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -64,14 +66,20 @@ public class  Menu {
 
     private boolean deleted = false;
 
-    // 재고 확인
-
 
     // 카테고리
     public boolean isSameCategory(String categoryEng){
         return this.categoryEng.equals(categoryEng);
     }
 
+    // 재고 확인
+    public void checkMenuStock(int quantity){
+        boolean result = this.stock - quantity > 0;
 
+        // 재고가 모자랄 경우 exception 예외처리
+        if (!result){
+            throw new NotEnoughStockException(this.id, StockExceptionType.NOT_ENOUGH_STOCK);
+        }
+    }
 
 }

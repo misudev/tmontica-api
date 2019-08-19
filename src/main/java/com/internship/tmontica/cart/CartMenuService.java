@@ -86,11 +86,8 @@ public class CartMenuService {
 
         for (CartRequest cartRequest : cartRequests) {
             Menu menu = menuDao.getMenuById(cartRequest.getMenuId());
-            int stock = menu.getStock(); // 메뉴의 현재 재고량
-            int quantity = cartRequest.getQuantity(); // 차감할 메뉴의 수량
-            if(stock-quantity < 0){ // 재고가 모자랄 경우 rollback
-                throw new NotEnoughStockException(cartRequest.getMenuId(), StockExceptionType.NOT_ENOUGH_STOCK);
-            }
+            // 재고 체크와 예외처리
+            menu.checkMenuStock(cartRequest.getQuantity());
 
             // direct : true 이면 userId 의 카트에서 direct = true 인 것을 삭제하기
             if (cartRequest.getDirect()) {
