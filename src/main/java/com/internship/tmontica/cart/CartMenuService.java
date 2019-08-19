@@ -37,7 +37,7 @@ public class CartMenuService {
     // 카트 정보 가져오기 api
     public CartResponse getCartMenuApi(){
         // 토큰에서 아이디 가져오기
-        String userId = JsonUtil.getJsonElementValue(jwtService.getUserInfo("userInfo"), "id");
+        String userId = getTokenId();
 
         List<CartMenusResponse> menus = new ArrayList<>(); // 반환할 객체 안의 menus에 들어갈 리스트
 
@@ -82,7 +82,7 @@ public class CartMenuService {
     public List<CartIdResponse> addCartApi(List<CartRequest> cartRequests){
         List<CartIdResponse> cartIds = new ArrayList<>();
         // 토큰에서 userId 가져오기
-        String userId = JsonUtil.getJsonElementValue(jwtService.getUserInfo("userInfo"),"id");
+        String userId = getTokenId();
 
         for (CartRequest cartRequest : cartRequests) {
             Menu menu = menuDao.getMenuById(cartRequest.getMenuId());
@@ -134,7 +134,7 @@ public class CartMenuService {
     // 카트 수정하기 api
     public int updateCartApi(int id, CartUpdateRequest cartUpdateRequest){
         // 토큰의 아이디와 카트 테이블의 userId 비교
-        String userId = JsonUtil.getJsonElementValue(jwtService.getUserInfo("userInfo"),"id");
+        String userId = getTokenId();
         String cartUserId = cartMenuDao.getCartMenuByCartId(id).getUserId();
         if(!userId.equals(cartUserId)){
             // 아이디 일치하지 않을 경우
@@ -156,7 +156,7 @@ public class CartMenuService {
     // 카트 삭제하기 api
     public int deleteCartApi(int id){
         // 토큰의 아이디와 카트 테이블의 userId 비교
-        String userId = JsonUtil.getJsonElementValue(jwtService.getUserInfo("userInfo"),"id");
+        String userId = getTokenId();
         String cartUserId = cartMenuDao.getCartMenuByCartId(id).getUserId();
         if(!userId.equals(cartUserId)){
             // 아이디 일치하지 않을 경우
@@ -191,5 +191,9 @@ public class CartMenuService {
     }
 
 
+    // 토큰에서 아이디 정보를 꺼내는 함수
+    public String getTokenId(){
+        return JsonUtil.getJsonElementValue(jwtService.getUserInfo("userInfo"), "id");
+    }
 
 }
