@@ -15,7 +15,6 @@ public class CartOptionRequest {
 
     // DB에 들어갈 옵션 문자열로 바꾸기
     public StringBuilder convertOptionStringToDB(StringBuilder optionStr){
-        // DB에 들어갈 옵션 문자열 만들기
         if (this.id > 2) {
             optionStr.append("/");
         }
