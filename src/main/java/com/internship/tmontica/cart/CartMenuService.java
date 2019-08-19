@@ -68,8 +68,9 @@ public class CartMenuService {
                                                                 menu.getNameKo(),"/images/".concat(menu.getImgUrl()), option ,
                                                                 cartMenu.getQuantity(), price, menu.getStock());
             menus.add(cartMenusResponse);
+
             // totalPrice 에 가격 누적
-            totalPrice += (price *  cartMenu.getQuantity());
+            totalPrice += cartMenu.calculateTotalPrice(price);
             // size에 quantity 누적
             size += cartMenu.getQuantity();
         }
@@ -96,6 +97,7 @@ public class CartMenuService {
             }
 
             List<CartOptionRequest> options = cartRequest.getOption();
+
             // 음료의 옵션에 HOT/ICE 선택이 안들어가있을때 익셉션 처리
             menu.checkDrinkOption(options);
 

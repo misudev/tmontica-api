@@ -38,5 +38,8 @@ public class CartMenu {
 
     // 문자열 가져오기
 
-    //
+    // totalPrice 계산하기
+    public int calculateTotalPrice(int price){
+        return price * this.quantity;
+    }
 }
