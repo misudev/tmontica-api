@@ -35,4 +35,8 @@ public class CartMenu {
         this.menuId = menuId;
         this.direct = direct;
     }
+
+    // 문자열 가져오기
+
+    //
 }

@@ -95,14 +95,7 @@ public class OrderService {
         }
 
         // device 종류 검사
-        String userAgent = "";
-        if (device.isMobile()) {
-            userAgent = UserAgentType.MOBILE.toString();
-        } else if (device.isTablet()) {
-            userAgent = UserAgentType.TABLET.toString();
-        } else {
-            userAgent = UserAgentType.PC.toString();
-        }
+        String userAgent = UserAgentType.toString(device);
 
         Order order = new Order(0,orderReq.getPayment(),orderReq.getTotalPrice(),orderReq.getUsedPoint(),
                 orderReq.getTotalPrice()-orderReq.getUsedPoint(), OrderStatusType.BEFORE_PAYMENT.getStatus(), userId, userAgent);
