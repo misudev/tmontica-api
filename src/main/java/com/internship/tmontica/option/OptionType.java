@@ -5,16 +5,28 @@ import lombok.Getter;
 @Getter
 public enum OptionType {
 
-    TEMPERATURE("Temperature", "온도"),
-    SHOT("Shot", "샷추가"),
-    SYRUP("Syrup", "시럽추가"),
-    SIZE("Size","사이즈업");
+    Temperature{
+        public StringBuilder attachString(StringBuilder sb, String amount ,Option option){
+            return sb.append(option.getName());
+        }
+    },
+    Shot{
+        public StringBuilder attachString(StringBuilder sb, String amount ,Option option){
+            return sb.append("/샷추가("+amount+"개)");
+        }
+    },
+    Syrup{
+        public StringBuilder attachString(StringBuilder sb, String amount ,Option option){
+            return sb.append("/시럽추가("+amount+"개)");
+        }
+    },
+    Size{
+        public StringBuilder attachString(StringBuilder sb, String amount ,Option option){
+            return sb.append("/사이즈업");
+        }
+    };
 
-    private String type;
-    private String name;
+    public abstract StringBuilder attachString(StringBuilder sb, String amount ,Option option);
 
-    OptionType(String type, String name) {
-        this.type = type;
-        this.name = name;
-    }
+
 }

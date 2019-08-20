@@ -156,8 +156,7 @@ public class CartMenuService {
             throw new CartException(CartExceptionType.FORBIDDEN_ACCESS_CART_DATA);
         }
         //카트에 담긴 정보 삭제하기
-        int result = cartMenuDao.deleteCartMenu(id);
-        return result;
+        return cartMenuDao.deleteCartMenu(id);
     }
 
 
@@ -170,15 +169,10 @@ public class CartMenuService {
             String[] oneOption = opStr.split("__");
             Option tmpOption = optionDao.getOptionById(Integer.parseInt(oneOption[0]));
 
-            if (tmpOption.getType().equals(OptionType.TEMPERATURE.getType())) {
-                convert.append(tmpOption.getName());
-            } else if(tmpOption.getType().equals(OptionType.SHOT.getType())){
-                convert.append("/"+OptionType.SHOT.getName()+"("+oneOption[1]+"개)");
-            } else if(tmpOption.getType().equals(OptionType.SYRUP.getType())){
-                convert.append("/"+OptionType.SYRUP.getName()+"("+oneOption[1]+"개)");
-            } else if(tmpOption.getType().equals(OptionType.SIZE.getType())){
-                convert.append("/"+OptionType.SIZE.getName());
-            }
+            // 각각의 enum값에 맞는 메서드를 구현?
+            OptionType optionType = OptionType.valueOf(tmpOption.getType());
+            optionType.attachString(convert, oneOption[1], tmpOption);
+
         }
         return convert.toString();
     }
