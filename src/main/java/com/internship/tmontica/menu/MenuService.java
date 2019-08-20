@@ -10,7 +10,6 @@ import com.internship.tmontica.option.Option;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,9 +24,6 @@ public class MenuService {
     private final MenuDao menuDao;
 
     private final ModelMapper modelMapper;
-
-    @Value("${menu.imagepath}")
-    private String location;
 
     // 메인 화면에 나타나는 메뉴 정보 (이달의 메뉴, 카테고리 별 메뉴)
     public List<MenuMainResponse> getMainMenus(){
@@ -57,7 +53,7 @@ public class MenuService {
     // 카테고리 별 메뉴 정보 가져오기
     public List<MenuSimpleResponse> getMenusByCategory(String category, int page, int size){
 
-        validateCategoryName(category);
+        CategoryName.validateCategoryName(category);
         List<Menu> usableMenus = MenuManager.getUsableMenusWithCheckEmpty();
         List<Menu> menus = usableMenus.stream()
                 .filter(menu -> menu.isSameCategory(category))
@@ -87,7 +83,7 @@ public class MenuService {
         }
 
         int endIndex = (startIndex + size < menus.size())? startIndex + size : menus.size();
-        return menus.subList(startIndex, endIndex);
+        return new ArrayList<>(menus.subList(startIndex, endIndex));    // subList -- 직렬화 문제
     }
 
 
@@ -134,14 +130,4 @@ public class MenuService {
         return menuMainResponse;
     }
 
-    // 카테고리 이름 체크
-    private void validateCategoryName(String categoryName){
-
-        for(CategoryName element : CategoryName.values()){
-            if(element.getCategoryEng().equals(categoryName)){
-                return;
-            }
-        }
-        throw new MenuException(MenuExceptionType.CATEGORY_NAME_MISMATCH_EXCEPTION);
-    }
 }

@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Predicate;
@@ -28,17 +27,14 @@ public class MenuManager {
     public void filteredMenu() {
         log.info("[scheduler] start scheduler");
         List<Menu> allMenus = menuDao.getAllMenus();
-        List<Menu> filteredMenus;
         Date now = new Date();
 
         Predicate<Menu> isDeleted = Menu::isDeleted;
         Predicate<Menu> con1 = menu -> menu.getStartDate() == null && menu.getEndDate() == null;
         Predicate<Menu> con2 = menu -> menu.getStartDate().before(now) && menu.getEndDate().after(now);
 
-        filteredMenus = allMenus.stream().filter(Menu::isUsable).filter(isDeleted.negate())
+        usableMenus = allMenus.stream().filter(Menu::isUsable).filter(isDeleted.negate())
                 .filter(con1.or(con2)).collect(Collectors.toList());
-        // read-only
-        usableMenus = Collections.unmodifiableList(filteredMenus);
 
         log.info("[scheduler] end scheduler , usableMenus size : {}", usableMenus.size());
     }

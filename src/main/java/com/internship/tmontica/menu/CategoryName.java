@@ -27,4 +27,15 @@ public enum CategoryName {
         throw new MenuException(MenuExceptionType.CATEGORY_NAME_MISMATCH_EXCEPTION);
     }
 
+    // 카테고리 이름 체크
+    public static void validateCategoryName(String categoryName){
+
+        for(CategoryName element : CategoryName.values()){
+            if(element.getCategoryEng().equals(categoryName)){
+                return;
+            }
+        }
+        throw new MenuException(MenuExceptionType.CATEGORY_NAME_MISMATCH_EXCEPTION);
+    }
+
 }
