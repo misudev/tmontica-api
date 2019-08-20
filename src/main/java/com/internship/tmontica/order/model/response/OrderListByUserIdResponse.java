@@ -9,8 +9,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderListByUserIdResp {
+public class OrderListByUserIdResponse {
 
     private int totalCnt;
-    private List<OrderListResp> orders;
+    private List<OrderListResponse> orders;
 }

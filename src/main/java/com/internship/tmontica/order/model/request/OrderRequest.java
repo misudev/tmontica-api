@@ -10,10 +10,10 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class OrderReq {
+public class OrderRequest {
     @NotEmpty
     @Valid
-    private List<OrderMenusReq> menus;
+    private List<OrderMenusRequest> menus;
     private int usedPoint;
     @Min(0)
     private int totalPrice;

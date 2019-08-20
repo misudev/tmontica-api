@@ -102,3 +102,7 @@ export async function del<SuccessDataType>(url: string, config?: AxiosRequestCon
     });
   }
 }
+
+export default {
+  handleError
+};

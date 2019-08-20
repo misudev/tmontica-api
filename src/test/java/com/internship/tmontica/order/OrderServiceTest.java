@@ -8,11 +8,11 @@ import com.internship.tmontica.menu.Menu;
 import com.internship.tmontica.menu.MenuDao;
 import com.internship.tmontica.order.exception.NotEnoughStockException;
 import com.internship.tmontica.order.exception.OrderException;
-import com.internship.tmontica.order.model.request.OrderReq;
-import com.internship.tmontica.order.model.request.OrderMenusReq;
-import com.internship.tmontica.order.model.response.OrderListByUserIdResp;
-import com.internship.tmontica.order.model.response.OrderResp;
-import com.internship.tmontica.order.model.response.OrderMenusResp;
+import com.internship.tmontica.order.model.request.OrderRequest;
+import com.internship.tmontica.order.model.request.OrderMenusRequest;
+import com.internship.tmontica.order.model.response.OrderListByUserIdResponse;
+import com.internship.tmontica.order.model.response.OrderResponse;
+import com.internship.tmontica.order.model.response.OrderMenusResponse;
 import com.internship.tmontica.point.PointDao;
 import com.internship.tmontica.point.exception.PointException;
 import com.internship.tmontica.security.JwtService;
@@ -28,7 +28,6 @@ import org.springframework.mobile.device.Device;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -86,10 +85,10 @@ public class OrderServiceTest {
         when(orderDao.getMenuNamesByOrderId(anyInt())).thenReturn(menuNames);
 
         // when
-        OrderListByUserIdResp orderListByUserIdResp = orderService.getOrderListApi(1, 10);
+        OrderListByUserIdResponse orderListByUserIdResponse = orderService.getOrderListApi(1, 10);
 
         // then
-        List list = orderListByUserIdResp.getOrders();
+        List list = orderListByUserIdResponse.getOrders();
         assertTrue(list.size() <= 10);
     }
 
@@ -98,17 +97,17 @@ public class OrderServiceTest {
     public void 결제하기_포인트사용(){
         // given
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
-        List<OrderMenusReq> menus = new ArrayList<>();
-        menus.add(new OrderMenusReq(1));
-        menus.add(new OrderMenusReq(2));
-        OrderReq orderReq = new OrderReq(menus, 1000, 3600, "현장결제");
+        List<OrderMenusRequest> menus = new ArrayList<>();
+        menus.add(new OrderMenusRequest(1));
+        menus.add(new OrderMenusRequest(2));
+        OrderRequest orderRequest = new OrderRequest(menus, 1000, 3600, "현장결제");
 
         when(userDao.getUserPointByUserId("testid")).thenReturn(3000);
         when(cartMenuDao.getCartMenuByCartId(anyInt())).thenReturn(new CartMenu(1, "2__1/3__1", "testid",300, 2, false));
         when(menuDao.getMenuById(anyInt())).thenReturn(menu);
 
         // when
-        orderService.addOrderApi(orderReq, device);
+        orderService.addOrderApi(orderRequest, device);
 
         // then
         verify(userDao, times(1)).updateUserPoint(2000, "testid");
@@ -125,65 +124,65 @@ public class OrderServiceTest {
     public void 결제하기_포인트익셉션(){
         // given
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
-        List<OrderMenusReq> menus = new ArrayList<>();
-        menus.add(new OrderMenusReq(1));
-        menus.add(new OrderMenusReq(2));
-        OrderReq orderReq = new OrderReq(menus, 1000, 2600, "현장결제");
+        List<OrderMenusRequest> menus = new ArrayList<>();
+        menus.add(new OrderMenusRequest(1));
+        menus.add(new OrderMenusRequest(2));
+        OrderRequest orderRequest = new OrderRequest(menus, 1000, 2600, "현장결제");
 
         when(userDao.getUserPointByUserId("testid")).thenReturn(900);
 
         // when
-        orderService.addOrderApi(orderReq, device);
+        orderService.addOrderApi(orderRequest, device);
     }
 
     @Test(expected = CartException.class)
     public void 결제하기_아이디불일치(){
         // given
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"invalidID\"}");
-        List<OrderMenusReq> menus = new ArrayList<>();
-        menus.add(new OrderMenusReq(1));
-        menus.add(new OrderMenusReq(2));
-        OrderReq orderReq = new OrderReq(menus, 1000, 2600, "현장결제");
+        List<OrderMenusRequest> menus = new ArrayList<>();
+        menus.add(new OrderMenusRequest(1));
+        menus.add(new OrderMenusRequest(2));
+        OrderRequest orderRequest = new OrderRequest(menus, 1000, 2600, "현장결제");
 
         when(userDao.getUserPointByUserId("invalidID")).thenReturn(3000);
         when(cartMenuDao.getCartMenuByCartId(anyInt())).thenReturn(new CartMenu(1, "2__1/3__1", "testid",1800, 2, false));
 
         // when
-        orderService.addOrderApi(orderReq, device);
+        orderService.addOrderApi(orderRequest, device);
     }
 
     @Test(expected = NotEnoughStockException.class)
     public void 결제하기_재고부족(){
         // given
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
-        List<OrderMenusReq> menus = new ArrayList<>();
-        menus.add(new OrderMenusReq(1));
-        menus.add(new OrderMenusReq(2));
-        OrderReq orderReq = new OrderReq(menus, 1000, 2600, "현장결제");
+        List<OrderMenusRequest> menus = new ArrayList<>();
+        menus.add(new OrderMenusRequest(1));
+        menus.add(new OrderMenusRequest(2));
+        OrderRequest orderRequest = new OrderRequest(menus, 1000, 2600, "현장결제");
 
         when(userDao.getUserPointByUserId("testid")).thenReturn(3000);
         when(cartMenuDao.getCartMenuByCartId(anyInt())).thenReturn(new CartMenu(101, "2__1/3__1", "testid",1800, 2, false));
         when(menuDao.getMenuById(anyInt())).thenReturn(menu);
 
         // when
-        orderService.addOrderApi(orderReq, device);
+        orderService.addOrderApi(orderRequest, device);
     }
 
     @Test(expected = OrderException.class)
     public void 결제하기_주문금액불일치(){
         // given
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
-        List<OrderMenusReq> menus = new ArrayList<>();
-        menus.add(new OrderMenusReq(1));
-        menus.add(new OrderMenusReq(2));
-        OrderReq orderReq = new OrderReq(menus, 1000, 1500, "현장결제");
+        List<OrderMenusRequest> menus = new ArrayList<>();
+        menus.add(new OrderMenusRequest(1));
+        menus.add(new OrderMenusRequest(2));
+        OrderRequest orderRequest = new OrderRequest(menus, 1000, 1500, "현장결제");
 
         when(userDao.getUserPointByUserId("testid")).thenReturn(3000);
         when(cartMenuDao.getCartMenuByCartId(anyInt())).thenReturn(new CartMenu(1, "2__1/3__1", "testid",300, 2, false));
         when(menuDao.getMenuById(anyInt())).thenReturn(menu);
 
         // when
-        orderService.addOrderApi(orderReq, device);
+        orderService.addOrderApi(orderRequest, device);
     }
 
     @Test
@@ -191,18 +190,18 @@ public class OrderServiceTest {
         // given
         when(orderDao.getOrderByOrderId(1)).thenReturn(order1);
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
-        List<OrderMenusResp> menus = new ArrayList<>();
-        menus.add(new OrderMenusResp(1, "americano", "아메리카노", "1__1/3__2/4__1", "adf/asdf.png", 1, 1900));
-        menus.add(new OrderMenusResp(3, "bread", "빵", "", "adf/asdf.png", 1, 1500));
+        List<OrderMenusResponse> menus = new ArrayList<>();
+        menus.add(new OrderMenusResponse(1, "americano", "아메리카노", "1__1/3__2/4__1", "adf/asdf.png", 1, 1900));
+        menus.add(new OrderMenusResponse(3, "bread", "빵", "", "adf/asdf.png", 1, 1500));
         when(orderDao.getOrderDetailByOrderId(1)).thenReturn(menus);
         when(cartMenuService.convertOptionStringToCli("1__1/3__2/4__1")).thenReturn("HOT/샷추가(2개)/시럽추가(1개)");
 
         // when
-        OrderResp orderResp = orderService.getOneOrderApi(1);
+        OrderResponse orderResponse = orderService.getOneOrderApi(1);
 
         // then
         verify(cartMenuService, atLeastOnce()).convertOptionStringToCli(anyString());
-        System.out.println(orderResp);
+        System.out.println(orderResponse);
     }
 
     @Test(expected = OrderException.class)

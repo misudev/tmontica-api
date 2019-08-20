@@ -1,11 +1,11 @@
 package com.internship.tmontica.cart;
 
 import com.internship.tmontica.cart.exception.CartException;
-import com.internship.tmontica.cart.model.request.CartReq;
-import com.internship.tmontica.cart.model.request.CartUpdateReq;
-import com.internship.tmontica.cart.model.request.CartOptionReq;
-import com.internship.tmontica.cart.model.response.CartIdResp;
-import com.internship.tmontica.cart.model.response.CartResp;
+import com.internship.tmontica.cart.model.request.CartRequest;
+import com.internship.tmontica.cart.model.request.CartUpdateRequest;
+import com.internship.tmontica.cart.model.request.CartOptionRequest;
+import com.internship.tmontica.cart.model.response.CartIdResponse;
+import com.internship.tmontica.cart.model.response.CartResponse;
 import com.internship.tmontica.menu.Menu;
 import com.internship.tmontica.menu.MenuDao;
 import com.internship.tmontica.option.Option;
@@ -86,17 +86,17 @@ public class CartMenuServiceTest {
         when(menuDao.getMenuById(cartMenu.getMenuId())).thenReturn(menu);
 
         // when
-        CartResp cartResp = cartMenuService.getCartMenuApi();
-        System.out.println(cartResp);
+        CartResponse cartResponse = cartMenuService.getCartMenuApi();
+        System.out.println(cartResponse);
 
         // then
-        assertEquals(cartResp.getSize(), cartMenu.getQuantity()+cartMenu2.getQuantity());
-        assertEquals(cartResp.getMenus().size(), cartMenus.size());
+        assertEquals(cartResponse.getSize(), cartMenu.getQuantity()+cartMenu2.getQuantity());
+        assertEquals(cartResponse.getMenus().size(), cartMenus.size());
         int totalPrice = 0;
         for (CartMenu cm: cartMenus) {
             totalPrice += (cm.getPrice()+menu.getSellPrice())*cm.getQuantity();
         }
-        assertEquals(cartResp.getTotalPrice(), totalPrice);
+        assertEquals(cartResponse.getTotalPrice(), totalPrice);
     }
 
     @Test
@@ -120,20 +120,20 @@ public class CartMenuServiceTest {
     @Test
     public void 카트추가하기() {
         // given
-        List<CartReq> cartReqs = new ArrayList<>();
-        List<CartOptionReq> option = new ArrayList<>();
-        option.add(new CartOptionReq(1,1));
-        option.add(new CartOptionReq(3,2));
-        CartReq cartReq = new CartReq(cartMenu.getMenuId(),cartMenu.getQuantity(),option,false);
-        cartReqs.add(cartReq);
-        cartReqs.add(cartReq);
+        List<CartRequest> cartRequests = new ArrayList<>();
+        List<CartOptionRequest> option = new ArrayList<>();
+        option.add(new CartOptionRequest(1,1));
+        option.add(new CartOptionRequest(3,2));
+        CartRequest cartRequest = new CartRequest(cartMenu.getMenuId(),cartMenu.getQuantity(),option,false);
+        cartRequests.add(cartRequest);
+        cartRequests.add(cartRequest);
         DB옵션문자열변환();
 
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
-        when(menuDao.getMenuById(cartReq.getMenuId())).thenReturn(menu);
+        when(menuDao.getMenuById(cartRequest.getMenuId())).thenReturn(menu);
 
         // when
-        List<CartIdResp> cartIds = cartMenuService.addCartApi(cartReqs);
+        List<CartIdResponse> cartIds = cartMenuService.addCartApi(cartRequests);
         // 반환되는 카트 id 값들은 auto increment 된 pk 이기 때문에 테스트로 확인을 할 수가 없다...
 
         // then
@@ -144,19 +144,19 @@ public class CartMenuServiceTest {
     @Test
     public void 카트추가하기_바로구매(){
         // given
-        List<CartReq> cartReqs = new ArrayList<>();
-        List<CartOptionReq> option = new ArrayList<>();
-        option.add(new CartOptionReq(1,1));
-        option.add(new CartOptionReq(3,2));
-        CartReq cartReq = new CartReq(cartMenu.getMenuId(),cartMenu.getQuantity(),option,true);
-        cartReqs.add(cartReq);
+        List<CartRequest> cartRequests = new ArrayList<>();
+        List<CartOptionRequest> option = new ArrayList<>();
+        option.add(new CartOptionRequest(1,1));
+        option.add(new CartOptionRequest(3,2));
+        CartRequest cartRequest = new CartRequest(cartMenu.getMenuId(),cartMenu.getQuantity(),option,true);
+        cartRequests.add(cartRequest);
         DB옵션문자열변환();
 
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
-        when(menuDao.getMenuById(cartReq.getMenuId())).thenReturn(menu);
+        when(menuDao.getMenuById(cartRequest.getMenuId())).thenReturn(menu);
 
         // when
-        cartMenuService.addCartApi(cartReqs);
+        cartMenuService.addCartApi(cartRequests);
 
         // then
         verify(cartMenuDao, times(1)).deleteDirectCartMenu("testid");
@@ -165,81 +165,81 @@ public class CartMenuServiceTest {
     @Test(expected = NotEnoughStockException.class)
     public void 카트추가하기_재고부족(){
         // given
-        List<CartReq> cartReqs = new ArrayList<>();
-        List<CartOptionReq> option = new ArrayList<>();
-        option.add(new CartOptionReq(1,1));
-        option.add(new CartOptionReq(3,2));
-        CartReq cartReq = new CartReq(2,200,option,true);
-        cartReqs.add(cartReq);
+        List<CartRequest> cartRequests = new ArrayList<>();
+        List<CartOptionRequest> option = new ArrayList<>();
+        option.add(new CartOptionRequest(1,1));
+        option.add(new CartOptionRequest(3,2));
+        CartRequest cartRequest = new CartRequest(2,200,option,true);
+        cartRequests.add(cartRequest);
 
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
-        when(menuDao.getMenuById(cartReq.getMenuId())).thenReturn(menu);
+        when(menuDao.getMenuById(cartRequest.getMenuId())).thenReturn(menu);
 
         // when
-        cartMenuService.addCartApi(cartReqs);
+        cartMenuService.addCartApi(cartRequests);
     }
 
     @Test(expected = CartException.class)
     public void 카트추가하기_디폴트옵션_선택없을때(){
         // given
-        List<CartReq> cartReqs = new ArrayList<>();
-        List<CartOptionReq> option = new ArrayList<>();
-        option.add(new CartOptionReq(3,1));
-        option.add(new CartOptionReq(4,2));
-        CartReq cartReq = new CartReq(2,1,option,true);
-        cartReqs.add(cartReq);
+        List<CartRequest> cartRequests = new ArrayList<>();
+        List<CartOptionRequest> option = new ArrayList<>();
+        option.add(new CartOptionRequest(3,1));
+        option.add(new CartOptionRequest(4,2));
+        CartRequest cartRequest = new CartRequest(2,1,option,true);
+        cartRequests.add(cartRequest);
 
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
-        when(menuDao.getMenuById(cartReq.getMenuId())).thenReturn(menu);
+        when(menuDao.getMenuById(cartRequest.getMenuId())).thenReturn(menu);
 
         // when
-        cartMenuService.addCartApi(cartReqs);
+        cartMenuService.addCartApi(cartRequests);
     }
 
     @Test
     public void 카트_수정하기() {
         // given
         int id = cartMenu.getId();
-        CartUpdateReq cartUpdateReq = new CartUpdateReq();
-        cartUpdateReq.setQuantity(1);
+        CartUpdateRequest cartUpdateRequest = new CartUpdateRequest();
+        cartUpdateRequest.setQuantity(1);
 
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
         when(cartMenuDao.getCartMenuByCartId(id)).thenReturn(cartMenu);
         when(menuDao.getMenuById(2)).thenReturn(menu);
 
         // when
-        cartMenuService.updateCartApi(id, cartUpdateReq);
+        cartMenuService.updateCartApi(id, cartUpdateRequest);
         // then
-        verify(cartMenuDao, times(1)).updateCartMenuQuantity(id, cartUpdateReq.getQuantity());
+        verify(cartMenuDao, times(1)).updateCartMenuQuantity(id, cartUpdateRequest.getQuantity());
     }
 
     @Test(expected = NotEnoughStockException.class)
     public void 카트_수정하기_재고부족() {
         // given
         int id = cartMenu.getId();
-        CartUpdateReq cartUpdateReq = new CartUpdateReq();
-        cartUpdateReq.setQuantity(1000);
+        CartUpdateRequest cartUpdateRequest = new CartUpdateRequest();
+        cartUpdateRequest.setQuantity(1000);
 
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"testid\"}");
         when(cartMenuDao.getCartMenuByCartId(id)).thenReturn(cartMenu);
         when(menuDao.getMenuById(2)).thenReturn(menu);
 
         // when
-        cartMenuService.updateCartApi(id, cartUpdateReq);
+        cartMenuService.updateCartApi(id, cartUpdateRequest);
     }
 
     @Test(expected = CartException.class)
     public void 카트_수정하기_아이디불일치(){
         // given
         int id = cartMenu.getId();
-        CartUpdateReq cartUpdateReq = new CartUpdateReq();
-        cartUpdateReq.setQuantity(1);
+        CartUpdateRequest cartUpdateRequest = new CartUpdateRequest();
+        cartUpdateRequest.setQuantity(1);
 
         when(jwtService.getUserInfo("userInfo")).thenReturn("{\"id\":\"notvalidId\"}");
         when(cartMenuDao.getCartMenuByCartId(id)).thenReturn(cartMenu);
 
         // when
-        cartMenuService.updateCartApi(id, cartUpdateReq);
+        cartMenuService.updateCartApi(id, cartUpdateRequest);
     }
 
     @Test
